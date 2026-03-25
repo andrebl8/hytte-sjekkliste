@@ -1,0 +1,17 @@
+{
+  "name": "Hyttesjekkliste",
+  "short_name": "Hytta",
+  "description": "Digital sjekkliste for hytta",
+  "start_url": "/hytte-sjekkliste/",
+  "display": "standalone",
+  "background_color": "#faf8f0",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

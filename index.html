@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hyttesjekkliste</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hytta">
+<link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -169,6 +175,55 @@
     margin-bottom: 8px;
   }
 
+  #install-banner {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 580px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 100;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+  }
+
+  #install-banner.hidden { display: none; }
+
+  #install-banner .banner-text { flex: 1; line-height: 1.4; }
+  #install-banner .banner-text strong { display: block; font-size: 16px; }
+
+  #install-btn {
+    background: var(--check);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  #dismiss-btn {
+    background: none;
+    border: none;
+    color: var(--paper);
+    opacity: 0.6;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+  }
+
   @media (max-width: 640px) {
     body {
       padding: 0;
@@ -185,6 +240,15 @@
 </style>
 </head>
 <body>
+<div id="install-banner" class="hidden">
+  <div class="banner-text">
+    <strong id="banner-title">Lagre på hjemskjermen</strong>
+    <span id="banner-desc">Få rask tilgang til sjekklisten</span>
+  </div>
+  <button id="install-btn">Installer</button>
+  <button id="dismiss-btn" aria-label="Lukk">×</button>
+</div>
+
 <div class="paper">
   <div class="date-label">Date</div>
 
@@ -316,6 +380,52 @@
   }
 
   updateAll();
+
+  // PWA install prompt
+  let deferredPrompt = null;
+  const banner = document.getElementById('install-banner');
+  const installBtn = document.getElementById('install-btn');
+  const dismissBtn = document.getElementById('dismiss-btn');
+
+  function showBanner() {
+    if (sessionStorage.getItem('install-dismissed')) return;
+    banner.classList.remove('hidden');
+  }
+
+  // Android / Chrome
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showBanner();
+  });
+
+  installBtn.addEventListener('click', () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    }
+    banner.classList.add('hidden');
+  });
+
+  dismissBtn.addEventListener('click', () => {
+    banner.classList.add('hidden');
+    sessionStorage.setItem('install-dismissed', '1');
+  });
+
+  // iOS Safari — no beforeinstallprompt, show manual tip
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone = window.navigator.standalone;
+  if (isIos && !isInStandalone) {
+    document.getElementById('banner-title').textContent = 'Lagre på hjemskjermen';
+    document.getElementById('banner-desc').textContent = 'Trykk \uF08A og velg «Legg til på Hjem-skjerm»';
+    installBtn.style.display = 'none';
+    showBanner();
+  }
+
+  // Service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
 </script>
 </body>
 </html>
