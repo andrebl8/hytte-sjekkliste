@@ -1,7 +1,9 @@
-const CACHE = 'hytte-v1';
+const CACHE = 'hytte-v2';
 const ASSETS = [
   '/hytte-sjekkliste/',
   '/hytte-sjekkliste/index.html',
+  '/hytte-sjekkliste/style.css',
+  '/hytte-sjekkliste/script.js',
   '/hytte-sjekkliste/manifest.json',
   '/hytte-sjekkliste/icon.svg'
 ];
